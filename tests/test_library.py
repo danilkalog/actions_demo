@@ -5,7 +5,6 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from library import Book, PrintedBook, EBook, User, Library
 
-
 class TestBook:
     """Тесты для класса Book"""
 
