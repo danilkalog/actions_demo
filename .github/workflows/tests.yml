@@ -25,4 +25,6 @@ jobs:
     
     - name: Run tests
       run: |
-        pytest tests/
+        cd tests
+        export PYTHONPATH=../src:$PYTHONPATH
+        pytest
