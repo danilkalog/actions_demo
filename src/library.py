@@ -1,191 +1,193 @@
-class Book:
-    def __init__(self, title, author, year):
-        self.title = title
-        self.author = author
-        self.year = year
-        self.available = True
+import sys
+import os
 
-    def get_title(self):
-        return self.title
+# Добавляем путь к src, чтобы импортировать library
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
-    def get_author(self):
-        return self.author
-
-    def get_year(self):
-        return self.year
-
-    def is_available(self):
-        return self.available
-
-    def mark_as_taken(self):
-        self.available = False
-
-    def mark_as_returned(self):
-        self.available = True
-
-    def __str__(self):
-        status = "в наличии" if self.available else "выдана"
-        return f"{self.title} - {self.author} ({self.year}) - {status}"
+from library import Book, PrintedBook, EBook, User, Librarian, Library
 
 
-class PrintedBook(Book):
-    def __init__(self, title, author, year, pages, condition):
-        super().__init__(title, author, year)
-        self.pages = pages
-        self.condition = condition
+class TestBook:
+    """Тесты для класса Book"""
 
-    def repair(self):
-        if self.condition == "плохая":
-            self.condition = "хорошая"
-        elif self.condition == "хорошая":
-            self.condition = "отличная"
-        print(f"{self.get_title()} отремонтирована. "
-              f"Состояние: {self.condition}")
+    def test_book_creation(self):
+        """Проверка создания книги"""
+        book = Book("Война и мир", "Лев Толстой", 1869)
+        assert book.get_title() == "Война и мир"
+        assert book.get_author() == "Лев Толстой"
+        assert book.get_year() == 1869
 
-    def __str__(self):
-        base_str = super().__str__()
-        return f"{base_str}, {self.pages} стр., {self.condition}"
+    def test_book_available_by_default(self):
+        """Проверка, что книга доступна при создании"""
+        book = Book("Война и мир", "Лев Толстой", 1869)
+        assert book.is_available()
 
+    def test_book_mark_as_taken(self):
+        """Проверка отметки книги как выданной"""
+        book = Book("Война и мир", "Лев Толстой", 1869)
+        book.mark_as_taken()
+        assert not book.is_available()
 
-class EBook(Book):
-    def __init__(self, title, author, year, filesize, format):
-        super().__init__(title, author, year)
-        self.filesize = filesize
-        self.format = format
-
-    def download(self):
-        print(f"{self.get_title()} загружается...")
-
-    def __str__(self):
-        base_str = super().__str__()
-        return f"{base_str}, {self.filesize} МБ, {self.format}"
+    def test_book_mark_as_returned(self):
+        """Проверка отметки книги как возвращённой"""
+        book = Book("Война и мир", "Лев Толстой", 1869)
+        book.mark_as_taken()
+        book.mark_as_returned()
+        assert book.is_available()
 
 
-class User:
-    def __init__(self, name):
-        self.name = name
-        self.borrowed_books = []
+class TestPrintedBook:
+    """Тесты для класса PrintedBook"""
 
-    def borrow(self, book):
-        if book.is_available():
-            book.mark_as_taken()
-            self.borrowed_books.append(book)
-            print(f"{self.name} взял {book.get_title()}")
-            return True
-        else:
-            print(f"{book.get_title()} недоступна")
-            return False
+    def test_printed_book_creation(self):
+        """Проверка создания печатной книги"""
+        book = PrintedBook("Война и мир", "Лев Толстой", 1869,
+                           1225, "хорошая")
+        assert book.get_title() == "Война и мир"
+        assert book.pages == 1225
+        assert book.condition == "хорошая"
 
-    def return_book(self, book):
-        if book in self.borrowed_books:
-            book.mark_as_returned()
-            self.borrowed_books.remove(book)
-            print(f"{self.name} вернул {book.get_title()}")
-            return True
-        else:
-            print(f"{self.name} не брал {book.get_title()}")
-            return False
-
-    def show_books(self):
-        if not self.borrowed_books:
-            print(f"У {self.name} нет книг")
-        else:
-            print(f"Книги {self.name}:")
-            for book in self.borrowed_books:
-                print(f"  - {book.get_title()}")
-
-    def get_borrowed_books(self):
-        return self.borrowed_books.copy()
+    def test_printed_book_inherits_from_book(self):
+        """Проверка наследования от Book"""
+        book = PrintedBook("Война и мир", "Лев Толстой", 1869,
+                           1225, "хорошая")
+        assert book.is_available()
 
 
-class Librarian(User):
-    def __init__(self, name):
-        super().__init__(name)
+class TestEBook:
+    """Тесты для класса EBook"""
 
-    def add_book(self, library, book):
-        library.add_book(book)
-        print(f"{self.name} добавил книгу: {book.get_title()}")
+    def test_ebook_creation(self):
+        """Проверка создания электронной книги"""
+        book = EBook("Война и мир", "Лев Толстой", 1966, 5, "epub")
+        assert book.get_title() == "Война и мир"
+        assert book.filesize == 5
+        assert book.format == "epub"
 
-    def remove_book(self, library, title):
-        library.remove_book(title)
-        print(f"{self.name} удалил книгу: {title}")
-
-    def register_user(self, library, user):
-        library.add_user(user)
-        print(f"{self.name} зарегистрировал пользователя: {user.name}")
+    def test_ebook_inherits_from_book(self):
+        """Проверка наследования от Book"""
+        book = EBook("Война и мир", "Лев Толстой", 1966, 5, "epub")
+        assert book.is_available()
 
 
-class Library:
-    def __init__(self):
-        self.books = []
-        self.users = []
+class TestUser:
+    """Тесты для класса User"""
 
-    def add_book(self, book):
-        self.books.append(book)
+    def test_user_creation(self):
+        """Проверка создания пользователя"""
+        user = User("Иван")
+        assert user.name == "Иван"
+        assert len(user.get_borrowed_books()) == 0
 
-    def remove_book(self, title):
-        for book in self.books:
-            if book.get_title() == title:
-                self.books.remove(book)
-                return True
-        return False
+    def test_user_borrow_available_book(self):
+        """Проверка выдачи доступной книги"""
+        book = Book("Война и мир", "Лев Толстой", 1869)
+        user = User("Иван")
+        result = user.borrow(book)
+        assert result
+        assert not book.is_available()
+        assert len(user.get_borrowed_books()) == 1
 
-    def add_user(self, user):
-        self.users.append(user)
+    def test_user_cannot_borrow_unavailable_book(self):
+        """Проверка невозможности выдачи недоступной книги"""
+        book = Book("Война и мир", "Лев Толстой", 1869)
+        book.mark_as_taken()
+        user = User("Иван")
+        result = user.borrow(book)
+        assert not result
+        assert len(user.get_borrowed_books()) == 0
 
-    def find_book(self, title):
-        for book in self.books:
-            if book.get_title() == title:
-                return book
-        return None
+    def test_user_return_book(self):
+        """Проверка возврата книги"""
+        book = Book("Война и мир", "Лев Толстой", 1869)
+        user = User("Иван")
+        user.borrow(book)
+        result = user.return_book(book)
+        assert result
+        assert book.is_available()
+        assert len(user.get_borrowed_books()) == 0
 
-    def show_all_books(self):
-        if not self.books:
-            print("Библиотека пуста")
-        else:
-            print("Все книги в библиотеке:")
-            for book in self.books:
-                print(f"  - {book}")
+    def test_user_cannot_return_book_not_borrowed(self):
+        """Проверка невозможности возврата чужой книги"""
+        book = Book("Война и мир", "Лев Толстой", 1869)
+        user = User("Иван")
+        result = user.return_book(book)
+        assert not result
 
-    def show_available_books(self):
-        available_books = [
-            book for book in self.books if book.is_available()
-        ]
-        if not available_books:
-            print("Нет доступных книг")
-        else:
-            print("Доступные книги:")
-            for book in available_books:
-                print(f"  - {book}")
 
-    def lend_book(self, title, username):
-        book = self.find_book(title)
-        user = self.find_user(username)
-        if not book:
-            print(f"Книга '{title}' не найдена")
-            return False
-        if not user:
-            print(f"Пользователь '{username}' не найден")
-            return False
-        if user.borrow(book):
-            return True
-        return False
+class TestLibrary:
+    """Тесты для класса Library"""
 
-    def return_book(self, title, username):
-        book = self.find_book(title)
-        user = self.find_user(username)
-        if not book:
-            print(f"Книга '{title}' не найдена")
-            return False
-        if not user:
-            print(f"Пользователь '{username}' не найден")
-            return False
-        if user.return_book(book):
-            return True
-        return False
+    def test_library_creation(self):
+        """Проверка создания библиотеки"""
+        lib = Library()
+        assert len(lib.books) == 0
+        assert len(lib.users) == 0
 
-    def find_user(self, name):
-        for user in self.users:
-            if user.name == name:
-                return user
-        return None
+    def test_library_add_book(self):
+        """Проверка добавления книги в библиотеку"""
+        lib = Library()
+        book = Book("Война и мир", "Лев Толстой", 1869)
+        lib.add_book(book)
+        assert len(lib.books) == 1
+
+    def test_library_find_book(self):
+        """Проверка поиска книги по названию"""
+        lib = Library()
+        book = Book("Война и мир", "Лев Толстой", 1869)
+        lib.add_book(book)
+        found = lib.find_book("Война и мир")
+        assert found == book
+
+    def test_library_find_book_not_found(self):
+        """Проверка поиска несуществующей книги"""
+        lib = Library()
+        found = lib.find_book("Война и мир")
+        assert found is None
+
+    def test_library_remove_book(self):
+        """Проверка удаления книги из библиотеки"""
+        lib = Library()
+        book = Book("Война и мир", "Лев Толстой", 1869)
+        lib.add_book(book)
+        result = lib.remove_book("Война и мир")
+        assert result
+        assert len(lib.books) == 0
+
+    def test_library_add_user(self):
+        """Проверка добавления пользователя в библиотеку"""
+        lib = Library()
+        user = User("Иван")
+        lib.add_user(user)
+        assert len(lib.users) == 1
+
+    def test_library_find_user(self):
+        """Проверка поиска пользователя по имени"""
+        lib = Library()
+        user = User("Иван")
+        lib.add_user(user)
+        found = lib.find_user("Иван")
+        assert found == user
+
+    def test_library_lend_book(self):
+        """Проверка выдачи книги через библиотеку"""
+        lib = Library()
+        book = Book("Война и мир", "Лев Толстой", 1869)
+        user = User("Иван")
+        lib.add_book(book)
+        lib.add_user(user)
+        result = lib.lend_book("Война и мир", "Иван")
+        assert result
+        assert not book.is_available()
+
+    def test_library_return_book(self):
+        """Проверка возврата книги через библиотеку"""
+        lib = Library()
+        book = Book("Война и мир", "Лев Толстой", 1869)
+        user = User("Иван")
+        lib.add_book(book)
+        lib.add_user(user)
+        lib.lend_book("Война и мир", "Иван")
+        result = lib.return_book("Война и мир", "Иван")
+        assert result
+        assert book.is_available()
