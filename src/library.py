@@ -39,7 +39,8 @@ class PrintedBook(Book):
             self.condition = "хорошая"
         elif self.condition == "хорошая":
             self.condition = "отличная"
-        print(f"{self.get_title()} отремонтирована. Состояние: {self.condition}")
+        print(f"{self.get_title()} отремонтирована. "
+              f"Состояние: {self.condition}")
 
     def __str__(self):
         base_str = super().__str__()
@@ -147,7 +148,9 @@ class Library:
                 print(f"  - {book}")
 
     def show_available_books(self):
-        available_books = [book for book in self.books if book.is_available()]
+        available_books = [
+            book for book in self.books if book.is_available()
+        ]
         if not available_books:
             print("Нет доступных книг")
         else:
